@@ -45,7 +45,7 @@ find_block() {
 }
 
 # Root only at this point; hoping selinux is permissive
-if [ $(id -u) != 0 ] || [ "$(getenforce)" != "Permissive" ]; then
+if ! id | grep ^uid=0 || [ "$(getenforce)" != "Permissive" ]; then
 	echo "Root user only" >&2
 	exit 1
 fi
@@ -66,7 +66,7 @@ if [ ! -f /sbin/.init-stamp ]; then
 		mount -o rw,remount /
 		mkdir -p /root
 		chmod 750 /root
-		if ! ln /sbin/* /root; then
+		if ! ln -f /sbin/* /root; then
 			echo "Error making /sbin hardlinks" >&2
 			setenforce 1
 			exit 1
@@ -117,7 +117,7 @@ setenforce 1
 mkdir -p $HOMEDIR
 cd $HOMEDIR || exit 1
 
-if ! cmp -s $SRCDIR/bin/magiskinit magiskinit; then
+if ! cmp $SRCDIR/bin/magiskinit magiskinit &>/dev/null; then
 	cp $SRCDIR/bin/magiskinit ./
 	chmod 700 magiskinit
 
@@ -125,7 +125,7 @@ if ! cmp -s $SRCDIR/bin/magiskinit magiskinit; then
 	ln -fs magiskinit magisk
 fi
 
-if ! cmp -s $SRCDIR/bin/mtk-su mtk-su; then
+if ! cmp $SRCDIR/bin/mtk-su mtk-su &>/dev/null; then
 	cp $SRCDIR/bin/mtk-su ./
 	chmod 700 mtk-su
 fi
